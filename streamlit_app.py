@@ -9,15 +9,22 @@ SEATS = {
     "F":6, "G":7, "H":6, "I":7, "J":7
 }
 
-# 初期データ準備
-if "people" not in st.session_state:
+# 初期化関数
+def initialize_state():
     st.session_state.people = [f"Person {i}" for i in range(1, TOTAL_PEOPLE + 1)]
-
-if "seat_limits" not in st.session_state:
     st.session_state.seat_limits = SEATS.copy()
-
-if "assignments" not in st.session_state:
     st.session_state.assignments = {seat: [] for seat in SEATS.keys()}
+
+# リセットフラグによる初期化処理
+if "reset_flag" in st.session_state:
+    initialize_state()
+    del st.session_state["reset_flag"]
+
+# セッション状態の初期化（未設定なら）
+if ("people" not in st.session_state or
+    "seat_limits" not in st.session_state or
+    "assignments" not in st.session_state):
+    initialize_state()
 
 # 割り当て処理関数
 def assign_next_person():
@@ -45,7 +52,7 @@ st.title("🎲 席割りランダムくじ引きアプリ")
 
 # リセットボタン
 if st.button("🔄 リセット"):
-    st.session_state.clear()
+    st.session_state["reset_flag"] = True
     st.experimental_rerun()
 
 # 割り当てボタン（残りいるなら表示）
