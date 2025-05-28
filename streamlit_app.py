@@ -59,30 +59,30 @@ st.table(df)
 
 import streamlit as st
 
-# 🎯 初期ステートを定義
+# デフォルト値
 DEFAULT_PEOPLE = []
 DEFAULT_SEAT_LIMITS = {"A": 7, "B": 7, "C": 7, "D": 7, "E": 7, "F": 6, "G": 7, "H": 6, "I": 7, "J": 7}
-DEFAULT_ASSIGNMENTS = {key: [] for key in DEFAULT_SEAT_LIMITS.keys()}
+DEFAULT_ASSIGNMENTS = {key: [] for key in DEFAULT_SEAT_LIMITS}
 
-# 初期化：セッションがなければ作る
+# セッション初期化
 if "people" not in st.session_state:
     st.session_state.people = DEFAULT_PEOPLE.copy()
 if "seat_limits" not in st.session_state:
     st.session_state.seat_limits = DEFAULT_SEAT_LIMITS.copy()
 if "assignments" not in st.session_state:
     st.session_state.assignments = DEFAULT_ASSIGNMENTS.copy()
-if "reset_triggered" not in st.session_state:
-    st.session_state.reset_triggered = False
+if "reset_done" not in st.session_state:
+    st.session_state.reset_done = False
 
-# ✅ リセットボタンの処理
+# 🔄 リセットボタン処理
 if st.button("🔄 リセット"):
-    st.session_state.reset_triggered = True
-
-# ✅ フラグが立っていれば、初期化処理をして rerun（安全に）
-if st.session_state.reset_triggered:
     st.session_state.people = DEFAULT_PEOPLE.copy()
     st.session_state.seat_limits = DEFAULT_SEAT_LIMITS.copy()
-    st.session_state.assignments = {key: [] for key in DEFAULT_SEAT_LIMITS.keys()}
-    st.session_state.reset_triggered = False
-    st.experimental_rerun()
+    st.session_state.assignments = {key: [] for key in DEFAULT_SEAT_LIMITS}
+    st.session_state.reset_done = True
 
+# ✅ リセット後の表示メッセージ
+if st.session_state.reset_done:
+    st.success("✅ リセット完了しました！")
+    # 一度だけ表示したらフラグを戻す（次の描画で非表示）
+    st.session_state.reset_done = False
