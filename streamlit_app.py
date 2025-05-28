@@ -45,8 +45,7 @@ st.title("🎲 席割りランダムくじ引きアプリ")
 
 # リセットボタン
 if st.button("🔄 リセット"):
-    st.session_state.people = [f"Person {i}" for i in range(1, TOTAL_PEOPLE + 1)]
-    st.session_state.assignments = {seat: [] for seat in SEATS.keys()}
+    st.session_state.clear()
     st.experimental_rerun()
 
 # 割り当てボタン（残りいるなら表示）
