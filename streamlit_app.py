@@ -1,88 +1,80 @@
 import streamlit as st
 import random
-import pandas as pd
 
-# 初期設定・状態保持
-if 'people' not in st.session_state:
-    # 参加者名（実名に変えてください）
-    st.session_state.people = [f"Person {i+1}" for i in range(68)]
-    random.shuffle(st.session_state.people)
-    
-if 'seat_limits' not in st.session_state:
-    st.session_state.seat_limits = {
-        'A': 7, 'B': 7, 'C': 7, 'D': 7, 'E': 7,
-        'F': 6, 'G': 7, 'H': 6, 'I': 7, 'J': 7
-    }
-
-if 'seat_pool' not in st.session_state:
-    seat_pool = []
-    for seat, limit in st.session_state.seat_limits.items():
-        seat_pool += [seat] * limit
-    random.shuffle(seat_pool)
-    st.session_state.seat_pool = seat_pool
-
-if 'assignments' not in st.session_state:
-    st.session_state.assignments = []
-
-# タイトル
-st.title("🎲 席割りルーレットアプリ")
-
-st.write(f"残り割り当て人数：{len(st.session_state.people)}人")
-
-# 「次の人を割り当て」ボタン
-if st.button("🎯 次の人を割り当て"):
-    if st.session_state.people and st.session_state.seat_pool:
-        name = st.session_state.people.pop(0)
-        seat = random.choice(st.session_state.seat_pool)
-        st.session_state.seat_pool.remove(seat)
-        st.session_state.assignments.append((name, seat))
-        st.success(f"{name} さん → {seat} 席に決定！")
-    else:
-        st.warning("⚠️ 全員の割り当てが完了しました！")
-
-# 割り当て表を席ごとに表示
-seat_dict = {}
-for name, seat in st.session_state.assignments:
-    seat_dict.setdefault(seat, []).append(name)
-
-# 最大人数に合わせて空白埋め
-max_len = max(len(v) for v in seat_dict.values()) if seat_dict else 0
-data = {
-    seat: seat_dict.get(seat, []) + [""] * (max_len - len(seat_dict.get(seat, [])))
-    for seat in sorted(st.session_state.seat_limits.keys())
+# 定数・初期値
+TOTAL_PEOPLE = 68
+SEATS = {
+    "A": 7, "B":7, "C":7, "D":7, "E":7,
+    "F":6, "G":7, "H":6, "I":7, "J":7
 }
 
-df = pd.DataFrame(data)
-
-st.write("## 割り当て一覧")
-st.table(df)
-
-import streamlit as st
-
-# デフォルト値
-DEFAULT_PEOPLE = []
-DEFAULT_SEAT_LIMITS = {"A": 7, "B": 7, "C": 7, "D": 7, "E": 7, "F": 6, "G": 7, "H": 6, "I": 7, "J": 7}
-DEFAULT_ASSIGNMENTS = {key: [] for key in DEFAULT_SEAT_LIMITS}
-
-# セッション初期化
+# 初期の参加者リスト（例：名前を1〜68までの数字で作成）
 if "people" not in st.session_state:
-    st.session_state.people = DEFAULT_PEOPLE.copy()
+    st.session_state.people = [f"Person {i}" for i in range(1, TOTAL_PEOPLE + 1)]
+
+# 割り当て可能な席の枠数
 if "seat_limits" not in st.session_state:
-    st.session_state.seat_limits = DEFAULT_SEAT_LIMITS.copy()
+    st.session_state.seat_limits = SEATS.copy()
+
+# 割り当て済みの辞書（席: 割り当てられた名前リスト）
 if "assignments" not in st.session_state:
-    st.session_state.assignments = DEFAULT_ASSIGNMENTS.copy()
+    st.session_state.assignments = {k: [] for k in st.session_state.seat_limits.keys()}
+
+# リセットフラグ（ボタン押されたときに初期化用）
 if "reset_done" not in st.session_state:
     st.session_state.reset_done = False
 
-# 🔄 リセットボタン処理
+st.title("🎲 席割りくじ引きアプリ")
+
+# リセットボタン処理
 if st.button("🔄 リセット"):
-    st.session_state.people = DEFAULT_PEOPLE.copy()
-    st.session_state.seat_limits = DEFAULT_SEAT_LIMITS.copy()
-    st.session_state.assignments = {key: [] for key in DEFAULT_SEAT_LIMITS}
+    st.session_state.people = [f"Person {i}" for i in range(1, TOTAL_PEOPLE + 1)]
+    st.session_state.seat_limits = SEATS.copy()
+    st.session_state.assignments = {k: [] for k in SEATS.keys()}
     st.session_state.reset_done = True
 
-# ✅ リセット後の表示メッセージ
 if st.session_state.reset_done:
-    st.success("✅ リセット完了しました！")
-    # 一度だけ表示したらフラグを戻す（次の描画で非表示）
+    st.success("✅ リセットしました！")
     st.session_state.reset_done = False
+
+# 残り人数計算
+assigned_count = sum(len(v) for v in st.session_state.assignments.values())
+remaining = TOTAL_PEOPLE - assigned_count
+st.info(f"🎯 残り割り当て人数：{remaining}人")
+
+# くじ引きボタン（1人ずつ割り当て）
+if remaining > 0:
+    if st.button("🎡 次の人を割り振る"):
+        # 残ってる参加者からランダムに1人選ぶ
+        next_person = random.choice(st.session_state.people)
+
+        # 割り当て可能な席のリスト（残り枠がある席のみ）
+        available_seats = [
+            seat for seat, limit in st.session_state.seat_limits.items()
+            if len(st.session_state.assignments[seat]) < limit
+        ]
+
+        if not available_seats:
+            st.warning("⚠️ 割り当て可能な席がありません！")
+        else:
+            # ランダムに席を1つ選ぶ
+            chosen_seat = random.choice(available_seats)
+            # 割り当てリストに追加
+            st.session_state.assignments[chosen_seat].append(next_person)
+            # 割り当てた人を未割り当てリストから削除
+            st.session_state.people.remove(next_person)
+            st.success(f"✨ {next_person} さんを席 {chosen_seat} に割り当てました！")
+
+else:
+    st.balloons()
+    st.success("🎉 全員割り当て完了しました！")
+
+# 割り当て状況を席ごとに表示
+st.subheader("📋 現在の割り当て状況")
+for seat, assigned_list in st.session_state.assignments.items():
+    st.markdown(f"**席 {seat} （定員{st.session_state.seat_limits[seat]}人）**")
+    if assigned_list:
+        for p in assigned_list:
+            st.write(f"- {p}")
+    else:
+        st.write("（未割り当て）")
