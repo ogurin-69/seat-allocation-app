@@ -59,24 +59,30 @@ st.table(df)
 
 import streamlit as st
 
-# セッションの初期化（必要に応じて定義）
-if 'people' not in st.session_state:
-    st.session_state.people = ["Alice", "Bob", "Charlie", "David"]
-if 'seat_limits' not in st.session_state:
-    st.session_state.seat_limits = {'A': 7, 'B': 7, 'C': 7}
-if 'assignments' not in st.session_state:
-    st.session_state.assignments = {'A': [], 'B': [], 'C': []}
-if 'reset_triggered' not in st.session_state:
+# 🎯 初期ステートを定義
+DEFAULT_PEOPLE = []
+DEFAULT_SEAT_LIMITS = {"A": 7, "B": 7, "C": 7, "D": 7, "E": 7, "F": 6, "G": 7, "H": 6, "I": 7, "J": 7}
+DEFAULT_ASSIGNMENTS = {key: [] for key in DEFAULT_SEAT_LIMITS.keys()}
+
+# 初期化：セッションがなければ作る
+if "people" not in st.session_state:
+    st.session_state.people = DEFAULT_PEOPLE.copy()
+if "seat_limits" not in st.session_state:
+    st.session_state.seat_limits = DEFAULT_SEAT_LIMITS.copy()
+if "assignments" not in st.session_state:
+    st.session_state.assignments = DEFAULT_ASSIGNMENTS.copy()
+if "reset_triggered" not in st.session_state:
     st.session_state.reset_triggered = False
 
-# 🔄 リセットボタンを押したときの処理
+# ✅ リセットボタンの処理
 if st.button("🔄 リセット"):
     st.session_state.reset_triggered = True
 
-# reset_triggered フラグを見て、安全に初期化のみ実行
+# ✅ フラグが立っていれば、初期化処理をして rerun（安全に）
 if st.session_state.reset_triggered:
-    st.session_state.people = ["Alice", "Bob", "Charlie", "David"]
-    st.session_state.seat_limits = {'A': 7, 'B': 7, 'C': 7}
-    st.session_state.assignments = {'A': [], 'B': [], 'C': []}
+    st.session_state.people = DEFAULT_PEOPLE.copy()
+    st.session_state.seat_limits = DEFAULT_SEAT_LIMITS.copy()
+    st.session_state.assignments = {key: [] for key in DEFAULT_SEAT_LIMITS.keys()}
     st.session_state.reset_triggered = False
     st.experimental_rerun()
+
