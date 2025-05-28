@@ -1,5 +1,6 @@
 import streamlit as st
 import random
+import pandas as pd
 
 # 定数・初期値設定
 TOTAL_PEOPLE = 68
@@ -61,12 +62,15 @@ assigned_count = sum(len(lst) for lst in st.session_state.assignments.values())
 remaining = TOTAL_PEOPLE - assigned_count
 st.info(f"🎯 残り割り当て人数：{remaining}人")
 
-# 割り当て状況表示
-st.subheader("📋 現在の割り当て状況")
+# 割り当て状況を表形式で表示
+max_len = max(len(lst) for lst in st.session_state.assignments.values())
+table_dict = {}
+
 for seat, assigned_list in st.session_state.assignments.items():
-    st.markdown(f"**席 {seat} （定員 {st.session_state.seat_limits[seat]}人）**")
-    if assigned_list:
-        for p in assigned_list:
-            st.write(f"- {p}")
-    else:
-        st.write("（未割り当て）")
+    padded_list = assigned_list + [""] * (max_len - len(assigned_list))
+    table_dict[seat] = padded_list
+
+df = pd.DataFrame(table_dict)
+
+st.subheader("📋 現在の割り当て状況（表形式）")
+st.table(df)
