@@ -59,7 +59,7 @@ st.table(df)
 
 import streamlit as st
 
-# 任意：セッションに初期値を入れておく処理（必要に応じて編集）
+# セッションの初期化（必要に応じて定義）
 if 'people' not in st.session_state:
     st.session_state.people = ["Alice", "Bob", "Charlie", "David"]
 if 'seat_limits' not in st.session_state:
@@ -69,13 +69,14 @@ if 'assignments' not in st.session_state:
 if 'reset_triggered' not in st.session_state:
     st.session_state.reset_triggered = False
 
-# 🔄 リセットボタン（クリック時、トリガーだけONに）
+# 🔄 リセットボタンを押したときの処理
 if st.button("🔄 リセット"):
     st.session_state.reset_triggered = True
 
-# 実際のリセット処理（次回描画時に安全に実行）
+# reset_triggered フラグを見て、安全に初期化のみ実行
 if st.session_state.reset_triggered:
-    for key in ['people', 'seat_limits', 'seat_pool', 'assignments']:
-        st.session_state.pop(key, None)
+    st.session_state.people = ["Alice", "Bob", "Charlie", "David"]
+    st.session_state.seat_limits = {'A': 7, 'B': 7, 'C': 7}
+    st.session_state.assignments = {'A': [], 'B': [], 'C': []}
     st.session_state.reset_triggered = False
     st.experimental_rerun()
