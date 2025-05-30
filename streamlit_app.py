@@ -2,29 +2,32 @@ import streamlit as st
 import random
 import pandas as pd
 
-TOTAL_PEOPLE = 68
+# 席の設定（A〜Hが6名、I〜Lが5名）
 SEATS = {
-    "A": 7, "B":7, "C":7, "D":7, "E":7,
-    "F":6, "G":7, "H":6, "I":7, "J":7
+    "A": 6, "B": 6, "C": 6, "D": 6,
+    "E": 6, "F": 6, "G": 6, "H": 6,
+    "I": 5, "J": 5, "K": 5, "L": 5
 }
+TOTAL_PEOPLE = sum(SEATS.values())  # 68人
 
+# 初期化関数
 def initialize_state():
     st.session_state.people = [f"Person {i}" for i in range(1, TOTAL_PEOPLE + 1)]
     st.session_state.seat_limits = SEATS.copy()
     st.session_state.assignments = {seat: [] for seat in SEATS.keys()}
 
-# 初期化処理（初回起動またはリセット後）
+# 初回起動時のみ初期化
 if 'initialized' not in st.session_state:
     initialize_state()
     st.session_state.initialized = True
 
-# リセットボタンの処理
+# リセットボタン（ページ再読み込みを推奨）
 if st.button("🔄 リセット"):
-    # セッション状態を初期化しつつ初期化済みフラグを消す
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.experimental_rerun()
 
+# 割り当て処理
 def assign_next_person():
     if len(st.session_state.people) == 0:
         st.warning("もう割り当てる人がいません。")
@@ -40,8 +43,10 @@ def assign_next_person():
     st.session_state.people.remove(next_person)
     st.success(f"🎉 {next_person} さんを席 {chosen_seat} に割り当てました！")
 
+# タイトル
 st.title("🎲 席割りランダムくじ引きアプリ")
 
+# 割り当てボタン
 if len(st.session_state.people) > 0:
     if st.button("🎡 次の人を割り振る"):
         assign_next_person()
@@ -49,13 +54,16 @@ else:
     st.balloons()
     st.success("🎉 全員の割り当てが完了しました！")
 
+# 残り人数表示
 assigned_count = sum(len(lst) for lst in st.session_state.assignments.values())
 remaining = TOTAL_PEOPLE - assigned_count
 st.info(f"🎯 残り割り当て人数：{remaining}人")
 
+# 割り当て状況を表形式で表示
 max_len = max(len(lst) for lst in st.session_state.assignments.values())
 table_dict = {}
-for seat, assigned_list in st.session_state.assignments.items():
+for seat in SEATS.keys():  # 並び順を固定
+    assigned_list = st.session_state.assignments[seat]
     padded_list = assigned_list + [""] * (max_len - len(assigned_list))
     table_dict[seat] = padded_list
 
