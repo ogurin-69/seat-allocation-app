@@ -2,13 +2,13 @@ import streamlit as st
 import random
 import pandas as pd
 
-# 席の設定（A〜Hが6名、I〜Lが5名）
+# 人数と席設定
+TOTAL_PEOPLE = 68
 SEATS = {
     "A": 6, "B": 6, "C": 6, "D": 6,
     "E": 6, "F": 6, "G": 6, "H": 6,
     "I": 5, "J": 5, "K": 5, "L": 5
 }
-TOTAL_PEOPLE = sum(SEATS.values())  # 68人
 
 # 初期化関数
 def initialize_state():
@@ -16,12 +16,12 @@ def initialize_state():
     st.session_state.seat_limits = SEATS.copy()
     st.session_state.assignments = {seat: [] for seat in SEATS.keys()}
 
-# 初回起動時のみ初期化
+# 初回のみ初期化
 if 'initialized' not in st.session_state:
     initialize_state()
     st.session_state.initialized = True
 
-# リセットボタン（ページ再読み込みを推奨）
+# リセット処理
 if st.button("🔄 リセット"):
     for key in list(st.session_state.keys()):
         del st.session_state[key]
@@ -33,8 +33,10 @@ def assign_next_person():
         st.warning("もう割り当てる人がいません。")
         return
     next_person = random.choice(st.session_state.people)
-    available_seats = [seat for seat, limit in st.session_state.seat_limits.items()
-                       if len(st.session_state.assignments[seat]) < limit]
+    available_seats = [
+        seat for seat, limit in st.session_state.seat_limits.items()
+        if len(st.session_state.assignments[seat]) < limit
+    ]
     if not available_seats:
         st.warning("割り当て可能な席がありません。")
         return
@@ -59,14 +61,13 @@ assigned_count = sum(len(lst) for lst in st.session_state.assignments.values())
 remaining = TOTAL_PEOPLE - assigned_count
 st.info(f"🎯 残り割り当て人数：{remaining}人")
 
-# 割り当て状況を表形式で表示
+# 表形式の割り当て状況表示（横スクロール対応）
 max_len = max(len(lst) for lst in st.session_state.assignments.values())
 table_dict = {}
-for seat in SEATS.keys():  # 並び順を固定
-    assigned_list = st.session_state.assignments[seat]
+for seat, assigned_list in st.session_state.assignments.items():
     padded_list = assigned_list + [""] * (max_len - len(assigned_list))
     table_dict[seat] = padded_list
 
 df = pd.DataFrame(table_dict)
 st.subheader("📋 現在の割り当て状況（表形式）")
-st.table(df)
+st.dataframe(df, use_container_width=True)
